@@ -1,3 +1,5 @@
 # Downloads Cleaner Changelog
 
-## [Initial Version] - {PR_MERGE_DATE}
+## 1.0.0 - 2026-03-20
+
+- Initial release.
