@@ -1,4 +1,4 @@
-import { showHUD, showToast, Toast } from "@raycast/api";
+import { getPreferenceValues, showHUD, showToast, Toast } from "@raycast/api";
 import { readdir, stat } from "node:fs/promises";
 import { homedir } from "node:os";
 import { join } from "node:path";
@@ -6,8 +6,45 @@ import { promisify } from "node:util";
 import { execFile } from "node:child_process";
 
 const execFileAsync = promisify(execFile);
-const TWO_DAYS_MS = 2 * 24 * 60 * 60 * 1000;
-const FINDER_RED_LABEL_INDEX = 2;
+
+type FinderTagColor = "red" | "orange" | "yellow" | "green" | "blue" | "purple" | "gray";
+
+interface CommandPreferences {
+  downloadFolderPath?: string;
+  timeThresholdDays?: string;
+  finderTagColor?: FinderTagColor;
+}
+
+const FINDER_LABEL_INDEX_BY_COLOR: Record<FinderTagColor, number> = {
+  gray: 1,
+  green: 6,
+  purple: 5,
+  blue: 4,
+  yellow: 3,
+  red: 2,
+  orange: 7,
+};
+
+function expandHomePath(inputPath: string) {
+  if (inputPath === "~") {
+    return homedir();
+  }
+
+  if (inputPath.startsWith("~/")) {
+    return join(homedir(), inputPath.slice(2));
+  }
+
+  return inputPath;
+}
+
+function parseThresholdDays(rawValue?: string) {
+  const parsed = Number(rawValue ?? "2");
+  if (!Number.isFinite(parsed) || parsed <= 0) {
+    return 2;
+  }
+
+  return parsed;
+}
 
 function toPercent(current: number, total: number) {
   if (total <= 0) {
@@ -21,22 +58,28 @@ function escapeAppleScriptString(value: string) {
   return value.replace(/\\/g, "\\\\").replace(/"/g, '\\"');
 }
 
-async function setFinderRedTag(filePath: string) {
+async function setFinderTag(filePath: string, labelIndex: number) {
   const escapedPath = escapeAppleScriptString(filePath);
-  const script = `tell application "Finder" to set label index of (POSIX file "${escapedPath}" as alias) to ${FINDER_RED_LABEL_INDEX}`;
+  const script = `tell application "Finder" to set label index of (POSIX file "${escapedPath}" as alias) to ${labelIndex}`;
   await execFileAsync("osascript", ["-e", script]);
 }
 
 export default async function main() {
+  const preferences = getPreferenceValues<CommandPreferences>();
+  const thresholdDays = parseThresholdDays(preferences.timeThresholdDays);
+  const thresholdMs = thresholdDays * 24 * 60 * 60 * 1000;
+  const tagColor: FinderTagColor = preferences.finderTagColor ?? "red";
+  const labelIndex = FINDER_LABEL_INDEX_BY_COLOR[tagColor];
+  const downloadsPath = expandHomePath(preferences.downloadFolderPath?.trim() || "~/Downloads");
+
   const progressToast = await showToast({
     style: Toast.Style.Animated,
-    title: "Scanning Downloads",
+    title: "Scanning folder",
     message: "0%",
   });
 
-  const downloadsPath = join(homedir(), "Downloads");
   const now = Date.now();
-  const threshold = now - TWO_DAYS_MS;
+  const threshold = now - thresholdMs;
 
   const entries = await readdir(downloadsPath, { withFileTypes: true });
   const filesToTag: string[] = [];
@@ -44,7 +87,7 @@ export default async function main() {
 
   for (const entry of entries) {
     scanned += 1;
-    progressToast.title = "Scanning Downloads";
+    progressToast.title = "Scanning folder";
     progressToast.message = `${toPercent(scanned, entries.length)}% (${scanned}/${entries.length})`;
 
     if (!entry.isFile()) {
@@ -66,8 +109,8 @@ export default async function main() {
   if (filesToTag.length === 0) {
     progressToast.style = Toast.Style.Success;
     progressToast.title = "Scan complete";
-    progressToast.message = "No files older than 2 days by atime";
-    await showHUD("No files older than 2 days by atime");
+    progressToast.message = `No files older than ${thresholdDays} day(s) by atime`;
+    await showHUD(`No files older than ${thresholdDays} day(s) by atime`);
     return;
   }
 
@@ -80,7 +123,7 @@ export default async function main() {
     progressToast.message = `${toPercent(tagged, filesToTag.length)}% (${tagged}/${filesToTag.length})`;
 
     try {
-      await setFinderRedTag(filePath);
+      await setFinderTag(filePath, labelIndex);
     } catch {
       failedFiles.push(filePath);
     }
@@ -105,7 +148,7 @@ export default async function main() {
   }
 
   progressToast.style = Toast.Style.Success;
-  progressToast.title = `Tagged ${succeeded} files with red label`;
+  progressToast.title = `Tagged ${succeeded} files with ${tagColor} label`;
   progressToast.message = "Completed";
-  await showHUD(`Tagged ${succeeded} files with red label`);
+  await showHUD(`Tagged ${succeeded} files with ${tagColor} label`);
 }

@@ -2,20 +2,75 @@
   "$schema": "https://www.raycast.com/schemas/extension.json",
   "name": "downloads-cleaner",
   "title": "Downloads Cleaner",
-  "description": "",
+  "description": "Tag outdated files in a folder with Finder labels.",
   "icon": "extension-icon.png",
   "author": "wybxc",
   "platforms": [
-    "macOS",
-    "Windows"
+    "macOS"
   ],
   "license": "MIT",
   "commands": [
     {
       "name": "tag-outdated-downloads",
       "title": "Tag Outdated Downloads",
-      "description": "",
-      "mode": "no-view"
+      "description": "Tag files older than a threshold based on access time.",
+      "mode": "no-view",
+      "preferences": [
+        {
+          "name": "downloadFolderPath",
+          "title": "Download Folder Path",
+          "description": "Folder to scan. Supports ~ for home directory.",
+          "type": "textfield",
+          "required": false,
+          "default": "~/Downloads"
+        },
+        {
+          "name": "timeThresholdDays",
+          "title": "Time Threshold (Days)",
+          "description": "Files with atime older than this value will be tagged.",
+          "type": "textfield",
+          "required": false,
+          "default": "2"
+        },
+        {
+          "name": "finderTagColor",
+          "title": "Finder Tag Color",
+          "description": "Color applied to outdated files.",
+          "type": "dropdown",
+          "required": false,
+          "default": "red",
+          "data": [
+            {
+              "title": "Red",
+              "value": "red"
+            },
+            {
+              "title": "Orange",
+              "value": "orange"
+            },
+            {
+              "title": "Yellow",
+              "value": "yellow"
+            },
+            {
+              "title": "Green",
+              "value": "green"
+            },
+            {
+              "title": "Blue",
+              "value": "blue"
+            },
+            {
+              "title": "Purple",
+              "value": "purple"
+            },
+            {
+              "title": "Gray",
+              "value": "gray"
+            }
+          ]
+        }
+      ]
     }
   ],
   "dependencies": {
