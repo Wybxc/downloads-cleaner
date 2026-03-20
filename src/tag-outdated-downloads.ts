@@ -16,13 +16,13 @@ interface CommandPreferences {
 }
 
 const FINDER_LABEL_INDEX_BY_COLOR: Record<FinderTagColor, number> = {
-  gray: 1,
-  green: 6,
-  purple: 5,
-  blue: 4,
-  yellow: 3,
+  orange: 1,
   red: 2,
-  orange: 7,
+  yellow: 3,
+  blue: 4,
+  purple: 5,
+  green: 6,
+  gray: 7,
 };
 
 function expandHomePath(inputPath: string) {
@@ -109,8 +109,8 @@ export default async function main() {
   if (filesToTag.length === 0) {
     progressToast.style = Toast.Style.Success;
     progressToast.title = "Scan complete";
-    progressToast.message = `No files older than ${thresholdDays} day(s) by atime`;
-    await showHUD(`No files older than ${thresholdDays} day(s) by atime`);
+    progressToast.message = `No files older than ${thresholdDays} day(s).`;
+    await showHUD(`No files older than ${thresholdDays} day(s).`);
     return;
   }
 

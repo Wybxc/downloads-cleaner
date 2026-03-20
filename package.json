@@ -30,7 +30,7 @@
           "description": "Files with atime older than this value will be tagged.",
           "type": "textfield",
           "required": false,
-          "default": "2"
+          "default": "14"
         },
         {
           "name": "finderTagColor",
