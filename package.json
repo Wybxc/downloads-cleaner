@@ -20,14 +20,14 @@
           "name": "downloadFolderPath",
           "title": "Download Folder Path",
           "description": "Folder to scan. Supports ~ for home directory.",
-          "type": "textfield",
+          "type": "directory",
           "required": false,
           "default": "~/Downloads"
         },
         {
           "name": "timeThresholdDays",
           "title": "Time Threshold (Days)",
-          "description": "Files with atime older than this value will be tagged.",
+          "description": "Files older than this value will be tagged.",
           "type": "textfield",
           "required": false,
           "default": "14"
@@ -35,7 +35,7 @@
         {
           "name": "finderTagColor",
           "title": "Finder Tag Color",
-          "description": "Color applied to outdated files.",
+          "description": "Tag color applied to outdated files.",
           "type": "dropdown",
           "required": false,
           "default": "red",
